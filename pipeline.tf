@@ -9,7 +9,7 @@ resource "aws_codebuild_project" "tf-plan" {
 
   environment {
     compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "hashicorp/terraform"
+    image                       = "hashicorp/terraform:0.14.3"
     type                        = "LINUX_CONTAINER"
  }
  source {
@@ -29,7 +29,7 @@ resource "aws_codebuild_project" "tf-apply" {
 
   environment {
     compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "hashicorp/terraform"
+    image                       = "hashicorp/terraform:0.14.3"
     type                        = "LINUX_CONTAINER"
  }
  source {
