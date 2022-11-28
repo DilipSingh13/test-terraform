@@ -101,7 +101,6 @@ resource "aws_codepipeline" "cicd_pipeline" {
             owner = "AWS"
             provider = "ElasticBeanstalk"
             version = "1"
-            owner = "AWS"
             input_artifacts = ["build_output"]
             configuration = {
                 ProjectName = "tf-cicd"
