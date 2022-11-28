@@ -1,5 +1,5 @@
 resource "aws_codebuild_project" "tf-plan" {
-  name          = "tf-cicd-plan"
+  name          = "tf-cicd-plan2"
   description   = "Plan stage for terraform"
   service_role  = aws_iam_role.tf-codebuild-role.arn
 
@@ -11,6 +11,11 @@ resource "aws_codebuild_project" "tf-plan" {
     compute_type                = "BUILD_GENERAL1_SMALL"
     image                       = "hashicorp/terraform:0.14.3"
     type                        = "LINUX_CONTAINER"
+    image_pull_credentials_type = "SERVICE_ROLE"
+    registry_credential{
+        credential = var.dockerhub_credentials
+        credential_provider = "SECRETS_MANAGER"
+    }
  }
  source {
      type   = "CODEPIPELINE"
@@ -31,13 +36,17 @@ resource "aws_codebuild_project" "tf-apply" {
     compute_type                = "BUILD_GENERAL1_SMALL"
     image                       = "hashicorp/terraform:0.14.3"
     type                        = "LINUX_CONTAINER"
+    image_pull_credentials_type = "SERVICE_ROLE"
+    registry_credential{
+        credential = var.dockerhub_credentials
+        credential_provider = "SECRETS_MANAGER"
+    }
  }
  source {
      type   = "CODEPIPELINE"
      buildspec = file("buildspec/apply-buildspec.yml")
  }
 }
-
 
 resource "aws_codepipeline" "cicd_pipeline" {
 
@@ -69,7 +78,7 @@ resource "aws_codepipeline" "cicd_pipeline" {
     }
 
     stage {
-        name ="Plan"
+        name ="terraPlan"
         action{
             name = "Build"
             category = "Build"
@@ -77,6 +86,7 @@ resource "aws_codepipeline" "cicd_pipeline" {
             version = "1"
             owner = "AWS"
             input_artifacts = ["tf-code"]
+            output_artifacts = ["build_output"]
             configuration = {
                 ProjectName = "tf-cicd-plan"
             }
@@ -87,13 +97,14 @@ resource "aws_codepipeline" "cicd_pipeline" {
         name ="Deploy"
         action{
             name = "Deploy"
-            category = "Build"
-            provider = "CodeBuild"
+            category = "Deploy"
+            owner = "AWS"
+            provider = "ElasticBeanstalk"
             version = "1"
             owner = "AWS"
-            input_artifacts = ["tf-code"]
+            input_artifacts = ["build_output"]
             configuration = {
-                ProjectName = "tf-cicd-apply"
+                ProjectName = "tf-cicd"
             }
         }
     }
